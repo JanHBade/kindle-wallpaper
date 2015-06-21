@@ -6,7 +6,7 @@ import time
 import codecs
 
 #Your private ical URL, if you don't know what to do here, read the README
-ICAL_URL = ""
+ICAL_URL = "https://www.google.com/calendar/ical/eiruralhk15190aut39mbop06c%40group.calendar.google.com/private-960e1d3fb402ef53b8928c969d274f43/basic.ics"
 
 urllib.urlretrieve (ICAL_URL, "basic.ics")
 
@@ -19,7 +19,7 @@ normal_events = []
 for component in cal.walk('vevent'):
 
 	#Because of timezone
-        delta = timedelta(hours = 3)
+        delta = timedelta(hours = 2)
 
         date_start = component['DTSTART'].dt + delta
 
@@ -28,8 +28,20 @@ for component in cal.walk('vevent'):
 		if date_start.timetuple().tm_year == datetime.datetime.now().timetuple().tm_year:
 
 			#Check if is not  all day (It does have time so datetime works)
+			if ( type(date_start) is datetime.datetime ):				
+				normal_events.append(component)
+			else:
+				all_day_events.append(component)
+
+	#Check if it is tomorrow
+	if( date_start.timetuple().tm_yday == (datetime.datetime. now().timetuple().tm_yday+1) ):
+		if date_start.timetuple().tm_year == datetime.datetime.now().timetuple().tm_year:
+			
+			#Edit Summary do display tommorow
+			component['SUMMARY']='M: ' + component['SUMMARY']
+			
+			#Check if is not  all day (It does have time so datetime works)
 			if ( type(date_start) is datetime.datetime ):
-				
 				normal_events.append(component)
 			else:
 				all_day_events.append(component)
@@ -44,13 +56,12 @@ count = 0
 
 for event in normal_events:
 
-        date_start = event['DTSTART'].dt + delta
+	date_start = event['DTSTART'].dt + delta
 
 	date_end = event['DTEND'].dt + delta
 
 	entry_date = date_start.strftime("%H:%M") + '-' +  date_end.strftime("%H:%M") 
 	entry_name = event['SUMMARY'] 
-
 
 	output = output.replace('hour'+ str(count) ,entry_date)
 	output = output.replace('Name' + str(count) ,entry_name)
@@ -58,7 +69,6 @@ for event in normal_events:
 	count+=1
 	#Just 5 tasks a day keeps the doctor away
 	if (count == 5):
-
 		break
 
 count = 0
@@ -70,7 +80,6 @@ for event in all_day_events:
 	output = output.replace('AllDay' + str(count) , entry_name)
 
 	if (count == 2 ):
-		
 		break
 
 #Erase unsused marks
@@ -89,22 +98,5 @@ output = output.replace('Name4' ,'')
 output = output.replace('AllDay0' ,'')
 output = output.replace('AllDay1' ,'')
 
-
-
 # Write output
 codecs.open('almost_done.svg', 'w', encoding='utf-8').write(output)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
